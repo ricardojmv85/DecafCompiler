@@ -1,0 +1,49 @@
+/*--------------- 1ra Area: Codigo de Usuario -----------------------*/
+//-------> importaciones, paquetes
+package scanner;
+import java_cup.runtime.Symbol;
+import java.util.LinkedList;
+import scanner.TError;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import parser.Simbolos;
+
+//------> Codigo para el parser,variables, metodos
+parser code
+{:
+    public String resultado="";
+    public static LinkedList<TError> TablaES = new LinkedList<TError>(); 
+
+   
+    
+
+:}
+
+//------> Codigo para las acciones gramaticales
+action code
+{:
+:}
+
+/*--------------- 2da Area: Declaraciones -----------------------*/
+//------> declaracion de terminales 
+terminal PLUS,MINUS,MORE,DIV,COMMENT,PARA,PARC,EXCLA,QUOTE,NUMERAL,DOLAR,
+PERCENT,CAFE,SINGLEQUOTE,POINT,COMMA,DPOINT,PC,MINUS2,EQUAL,MINUS3,
+INTER,TILD,LLAV,LLAC,OR,EQUALS,CORC,CORD,DIAGO,EXP,FLOOR,SPACE,BOOLEAN,
+BREAK,CALLOUT,CLASS,CONTINUE,ELSE,FALSE,FOR,IF,INT,RETURN,TRUE,VOID, NUM, 
+ALPHA,PROGRAM,alpha_num;
+
+
+
+//------> declaracion de no terminales
+non terminal String E,prueba;
+
+ 
+
+start with prueba;
+prueba::=E E|prueba E;
+E::=PLUS|MINUS|MORE|DIV|COMMENT|PARA|PARC|EXCLA|QUOTE|NUMERAL|DOLAR|
+PERCENT|CAFE|SINGLEQUOTE|POINT|COMMA|DPOINT|PC|MINUS2|EQUAL|MINUS3|
+INTER|TILD|LLAV|LLAC|EQUALS|CORC|CORD|DIAGO|EXP|FLOOR|SPACE|BOOLEAN|
+BREAK|CALLOUT|CLASS|CONTINUE|ELSE|FALSE|FOR| IF |INT|RETURN|TRUE|VOID |
+NUM|ALPHA|PROGRAM|alpha_num;
+

@@ -1,0 +1,12 @@
+class Program { 
+        void gato ( int comida, int ladrido, int saber ) { 
+        boolean bandera, bander2; 
+        int pantera;
+        if ( maria == pantera ){
+            break;
+        }else{
+            continue;
+        }
+        
+    } 
+}

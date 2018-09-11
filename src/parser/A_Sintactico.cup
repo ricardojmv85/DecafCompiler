@@ -1,0 +1,136 @@
+/*--------------- 1ra Area: Codigo de Usuario -----------------------*/
+//-------> importaciones, paquetes
+package parser;
+import java_cup.runtime.Symbol;
+import java.util.LinkedList;
+import scanner.TError;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+
+//------> Codigo para el parser,variables, metodos
+parser code
+{:
+    public String resultado="";
+    public static LinkedList<TError> TablaES = new LinkedList<TError>(); 
+
+    //Metodo al que se llama automaticamente ante algun error sintactico
+
+    public void syntax_error(Symbol s)
+    {        
+        String lexema = s.value.toString();
+        int fila = s.right;
+        int columna = s.left;
+
+        TError datos = new TError(lexema,fila,columna,"Error Sintactico","Caracter no esperado");
+        TablaES.add(datos);
+        FileWriter fichero = null;
+        PrintWriter pw = null;
+        try
+        {
+            fichero = new FileWriter("D:\\Sexto Semestre\\Compiladores\\Compiler\\src\\scanner\\salida.txt");
+            pw = new PrintWriter(fichero);
+            pw.println("Error Sintactio Recuperado "+lexema+" Linea "+fila+" Columna "+columna);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+           try {
+           if (null != fichero)
+              fichero.close();
+           } catch (Exception e2) {
+              e2.printStackTrace();
+           }
+        };
+    }
+
+    //Metodo al que se llama en el momento en que ya no es posible una recuperacion de errores
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception
+    {        
+        String lexema = s.value.toString();
+        int fila = s.right;
+        int columna = s.left;
+        TError datos = new TError(lexema,fila,columna,"Error Sintactico","Caracter no esperado");
+        TablaES.add(datos);
+    }
+    
+    public ArrayList<String> Tokens = new ArrayList<String>();
+    public void enlistar(String argumento){
+        Tokens.add(argumento);
+    }
+:}
+
+//------> Codigo para las acciones gramaticales
+action code
+{:
+:}
+
+/*--------------- 2da Area: Declaraciones -----------------------*/
+//------> declaracion de terminales 
+terminal PLUS,MINUS,MORE,DIV,COMMENT,PARA,PARC,EXCLA,QUOTE,NUMERAL,DOLAR,
+PERCENT,CAFE,SINGLEQUOTE,POINT,COMMA,DPOINT,PC,MINUS2,EQUAL,MINUS3,
+INTER,TILD,LLAV,LLAC,OR,EQUALS,CORC,CORD,DIAGO,EXP,FLOOR,SPACE,BOOLEAN,BREAK,CALLOUT,CLASS,CONTINUE,ELSE,FALSE,FOR,IF,INT,RETURN,TRUE,VOID;
+terminal Integer NUM, ALPHA,PROGRAM,alpha_num;
+
+
+
+//------> declaracion de no terminales
+non terminal String statement,method_decl,method_decl2,method_decl3,method_decl4,method_decl5,type,
+program,field_decl,field_decl2,field_decl3;
+non terminal String block,else_blockm,exprm,assign_op,method_call,expr,expr2,expr3,callout_arg,callout_argm,callout_arg2,method_name,location,
+bin_op,arith_op,rel_op,eq_op,cond_op,literal,bool_literal,id,var_decl,var_decl2, statement_m,string_literal,char_literal,var_declm,
+statement_mm,field_declm,method_declm;
+
+
+precedence left PLUS,MINUS, PARC;
+precedence left MORE, DIV, PERCENT;
+precedence left MINUS2, MINUS3, EQUAL, CAFE, OR, EXCLA;
+precedence left INT,BOOLEAN,PARA;
+precedence left PARC,COMMA, NUM;
+
+
+start with program;
+program::=CLASS PROGRAM LLAV field_declm method_declm LLAC {:System.out.println("Sentencia analizada correctamente. Sin errores.");:}
+        | error {: System.out.println("Error sintactico en la sentencia"); :};
+field_decl::=type field_decl2 PC | type field_decl2 PC field_decl;
+field_decl2::=field_decl2 COMMA field_decl3 | field_decl3;
+field_decl3::=alpha_num | alpha_num CORC NUM CORD;
+field_declm::=field_decl | ;
+method_declm::=method_decl| ;
+method_decl::=method_decl2 alpha_num PARA method_decl5 PARC block| method_decl2 alpha_num PARA method_decl5 PARC block method_decl;
+method_decl2::=type|VOID;
+method_decl3::=method_decl3 COMMA method_decl4 | method_decl4;
+method_decl4::=type alpha_num;
+method_decl5::=method_decl3 | ;
+type::= INT | BOOLEAN;
+
+/*--------------- Aun no probadas -----------------------*/
+block::= LLAV var_declm statement_mm LLAC;
+var_decl::=type var_decl2 PC | type var_decl2 PC var_decl;
+var_declm::=var_decl| ;
+var_decl2::=var_decl2 COMMA alpha_num | alpha_num;
+statement_m::=statement statement_m| statement;
+statement::=location assign_op expr PC | method_call PC | IF PARA expr PARC block else_blockm | FOR alpha_num EQUAL expr COMMA expr block 
+           | RETURN exprm PC| BREAK PC| CONTINUE PC | block;
+statement_mm::=statement_m | ;
+else_blockm::=ELSE block | ;
+exprm::=expr | ;
+assign_op::=EQUAL | PLUS EQUAL | MINUS EQUAL;
+method_call ::= method_name PARA expr3 PARC CALLOUT PARA alpha_num callout_argm PARC;
+expr::= location | method_call | literal | expr bin_op expr | MINUS expr | EXCLA expr | PARA expr PARC;
+expr2::=expr2 COMMA expr | expr;
+expr3::=expr2| ;
+callout_arg::=expr|string_literal;
+callout_argm::= COMMA callout_arg2 | ;
+callout_arg2::=callout_arg2 COMMA callout_arg | callout_arg;
+method_name::=alpha_num;
+location::=id| id CORC NUM CORD;
+bin_op::=arith_op | rel_op | eq_op | cond_op;
+arith_op::=PLUS | MINUS| MORE | DIV | PERCENT;
+rel_op::= MINUS2 | MINUS3 | MINUS2 EQUAL | MINUS3 EQUAL;
+eq_op::=EQUAL EQUAL | EXCLA EQUAL;
+cond_op::=CAFE CAFE | OR OR;
+literal::=NUM| bool_literal|char_literal;
+bool_literal::=TRUE |FALSE;
+id::=alpha_num;
+string_literal::=QUOTE alpha_num QUOTE;
+char_literal::=SINGLEQUOTE alpha_num SINGLEQUOTE;
+

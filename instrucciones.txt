@@ -1,0 +1,4 @@
+El programa Compiler al ejecutarse lee un archivo de entrada.txt el cual contiene un programa escrito en DECAF.
+Es necesario modificar la ruta del archivo de entrada y la de salida.
+Esto se encuentra en el Archivo Ananalizador_lexico.java este contiene la ruta al archivo de salida, igualmente el archivo analizador_sintactico.java contiene la ruta del archivo de salida.
+Para indicar el archivo de entrada, es necesario modificar la ruta del archivo Compiler.java.
