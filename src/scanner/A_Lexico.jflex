@@ -63,6 +63,9 @@ import java.util.ArrayList;
 new_line =  \r|\n|\r\n;
 white_space = {new_line} | [ \t\f]
 numero = [0-9]
+letra = [a-fA-F]
+hex_digit= [numero letra]
+hex=[0x hex_digit hex_digit*]
 alfanum = [:jletter:] [:jletterdigit:]*
 //------> Estados
 
@@ -84,6 +87,8 @@ alfanum = [:jletter:] [:jletterdigit:]*
 <YYINITIAL> "true"         { enlistar("Type: KW, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+""); return new Symbol(Simbolos.TRUE, yycolumn, yyline, yytext()); }
 <YYINITIAL> "void"         { enlistar("Type: KW, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+""); return new Symbol(Simbolos.VOID, yycolumn, yyline, yytext()); }
 <YYINITIAL> "Program"         { enlistar("Type: KW, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+""); return new Symbol(Simbolos.PROGRAM, yycolumn, yyline, yytext()); }
+<YYINITIAL> "main"         { enlistar("Type: KW, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+""); return new Symbol(Simbolos.MAIN, yycolumn, yyline, yytext()); }
+
 
 <YYINITIAL> "+"         { enlistar("Type: KW, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+""); return new Symbol(Simbolos.PLUS, yycolumn, yyline, yytext()); }
 <YYINITIAL> "-"         { enlistar("Type: KW, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+""); return new Symbol(Simbolos.MINUS, yycolumn, yyline, yytext()); }
@@ -98,7 +103,7 @@ alfanum = [:jletter:] [:jletterdigit:]*
 <YYINITIAL> "$"         { enlistar("Type: KW, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+""); return new Symbol(Simbolos.DOLAR, yycolumn, yyline, yytext()); }
 <YYINITIAL> "%"         { enlistar("Type: KW, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+""); return new Symbol(Simbolos.PERCENT, yycolumn, yyline, yytext()); }
 <YYINITIAL> "&"         { enlistar("Type: KW, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+""); return new Symbol(Simbolos.CAFE, yycolumn, yyline, yytext()); }
-<YYINITIAL> "\'"        { enlistar("Type: KW, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+""); return new Symbol(Simbolos.DIAGO, yycolumn, yyline, yytext()); }
+<YYINITIAL> "\'"        { enlistar("Type: KW, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+""); return new Symbol(Simbolos.SINGLEQUOTE, yycolumn, yyline, yytext()); }
 <YYINITIAL> "."         { enlistar("Type: KW, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+""); return new Symbol(Simbolos.POINT, yycolumn, yyline, yytext()); }
 <YYINITIAL> ","         { enlistar("Type: KW, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+""); return new Symbol(Simbolos.COMMA, yycolumn, yyline, yytext()); }
 <YYINITIAL> ":"         { enlistar("Type: KW, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+""); return new Symbol(Simbolos.DPOINT, yycolumn, yyline, yytext()); }

@@ -1,12 +1,17 @@
 class Program { 
-        void gato ( int comida, int ladrido, int saber ) { 
-        boolean bandera, bander2; 
-        int pantera;
-        if ( maria == pantera ){
-            break;
-        }else{
-            continue;
+        main ( ) { }
+        int que[23];
+        int man;
+        boolean saber;
+        int cabal ( int cabal, boolean sepa){return que;}
+        
+        boolean amigo( int men, boolean saber){
+            int perro;
+            boolean saber;
+            boolean amiga;
+            return saber;
         }
         
-    } 
+        
+
 }

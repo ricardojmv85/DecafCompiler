@@ -6,11 +6,14 @@ import java.util.LinkedList;
 import scanner.TError;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-
+import java.util.ArrayList;
+import java.util.List;
+import ast.Nodo;
+    
 //------> Codigo para el parser,variables, metodos
 parser code
 {:
-    public String resultado="";
+    public Nodo padre;
     public static LinkedList<TError> TablaES = new LinkedList<TError>(); 
 
     //Metodo al que se llama automaticamente ante algun error sintactico
@@ -52,10 +55,12 @@ parser code
         TablaES.add(datos);
     }
     
-    public ArrayList<String> Tokens = new ArrayList<String>();
+    public ArrayList<String> Gramaticas = new ArrayList<String>();
     public void enlistar(String argumento){
-        Tokens.add(argumento);
+        Gramaticas.add(argumento);
     }
+
+    Integer contador=0;
 :}
 
 //------> Codigo para las acciones gramaticales
@@ -68,69 +73,503 @@ action code
 terminal PLUS,MINUS,MORE,DIV,COMMENT,PARA,PARC,EXCLA,QUOTE,NUMERAL,DOLAR,
 PERCENT,CAFE,SINGLEQUOTE,POINT,COMMA,DPOINT,PC,MINUS2,EQUAL,MINUS3,
 INTER,TILD,LLAV,LLAC,OR,EQUALS,CORC,CORD,DIAGO,EXP,FLOOR,SPACE,BOOLEAN,BREAK,CALLOUT,CLASS,CONTINUE,ELSE,FALSE,FOR,IF,INT,RETURN,TRUE,VOID;
-terminal Integer NUM, ALPHA,PROGRAM,alpha_num;
+terminal Integer ALPHA,PROGRAM,MAIN;
+terminal String alpha_num,NUM;
 
 
 
 //------> declaracion de no terminales
-non terminal String statement,method_decl,method_decl2,method_decl3,method_decl4,method_decl5,type,
-program,field_decl,field_decl2,field_decl3;
-non terminal String block,else_blockm,exprm,assign_op,method_call,expr,expr2,expr3,callout_arg,callout_argm,callout_arg2,method_name,location,
-bin_op,arith_op,rel_op,eq_op,cond_op,literal,bool_literal,id,var_decl,var_decl2, statement_m,string_literal,char_literal,var_declm,
-statement_mm,field_declm,method_declm;
+non terminal Nodo statement,method_decl,method_decl2,method_decl3,method_decl4,method_decl5,
+program;
+non terminal Nodo block,else_blockm,exprm,assign_op,method_call,expr,expr2,expr3,callout_arg,callout_argm,callout_arg2,method_name,location,
+bin_op,arith_op,rel_op,eq_op,cond_op,literal,bool_literal,var_decl,var_decl2, statement_m,string_literal,char_literal,var_declm,
+statement_mm,method_declm,main_method;
 
+non terminal Nodo id,field_declm,field_decl,field_decl2,field_decl3,type;
 
 precedence left PLUS,MINUS, PARC;
 precedence left MORE, DIV, PERCENT;
 precedence left MINUS2, MINUS3, EQUAL, CAFE, OR, EXCLA;
-precedence left INT,BOOLEAN,PARA;
 precedence left PARC,COMMA, NUM;
-
+precedence left INT,BOOLEAN,PARA;
 
 start with program;
-program::=CLASS PROGRAM LLAV field_declm method_declm LLAC {:System.out.println("Sentencia analizada correctamente. Sin errores.");:}
-        | error {: System.out.println("Error sintactico en la sentencia"); :};
-field_decl::=type field_decl2 PC | type field_decl2 PC field_decl;
-field_decl2::=field_decl2 COMMA field_decl3 | field_decl3;
-field_decl3::=alpha_num | alpha_num CORC NUM CORD;
-field_declm::=field_decl | ;
-method_declm::=method_decl| ;
-method_decl::=method_decl2 alpha_num PARA method_decl5 PARC block| method_decl2 alpha_num PARA method_decl5 PARC block method_decl;
-method_decl2::=type|VOID;
-method_decl3::=method_decl3 COMMA method_decl4 | method_decl4;
-method_decl4::=type alpha_num;
-method_decl5::=method_decl3 | ;
-type::= INT | BOOLEAN;
+program::=CLASS PROGRAM LLAV main_method field_decl:a method_decl:b LLAC {:enlistar("Programa parseado completamente "+contador+""); contador++;  
+                                                                           :}  
+        | error {: enlistar("Error sintactico en el programa"); :};
 
-/*--------------- Aun no probadas -----------------------*/
-block::= LLAV var_declm statement_mm LLAC;
-var_decl::=type var_decl2 PC | type var_decl2 PC var_decl;
-var_declm::=var_decl| ;
-var_decl2::=var_decl2 COMMA alpha_num | alpha_num;
-statement_m::=statement statement_m| statement;
-statement::=location assign_op expr PC | method_call PC | IF PARA expr PARC block else_blockm | FOR alpha_num EQUAL expr COMMA expr block 
-           | RETURN exprm PC| BREAK PC| CONTINUE PC | block;
-statement_mm::=statement_m | ;
-else_blockm::=ELSE block | ;
-exprm::=expr | ;
-assign_op::=EQUAL | PLUS EQUAL | MINUS EQUAL;
-method_call ::= method_name PARA expr3 PARC CALLOUT PARA alpha_num callout_argm PARC;
-expr::= location | method_call | literal | expr bin_op expr | MINUS expr | EXCLA expr | PARA expr PARC;
-expr2::=expr2 COMMA expr | expr;
-expr3::=expr2| ;
-callout_arg::=expr|string_literal;
-callout_argm::= COMMA callout_arg2 | ;
-callout_arg2::=callout_arg2 COMMA callout_arg | callout_arg;
-method_name::=alpha_num;
-location::=id| id CORC NUM CORD;
-bin_op::=arith_op | rel_op | eq_op | cond_op;
-arith_op::=PLUS | MINUS| MORE | DIV | PERCENT;
-rel_op::= MINUS2 | MINUS3 | MINUS2 EQUAL | MINUS3 EQUAL;
-eq_op::=EQUAL EQUAL | EXCLA EQUAL;
-cond_op::=CAFE CAFE | OR OR;
-literal::=NUM| bool_literal|char_literal;
-bool_literal::=TRUE |FALSE;
-id::=alpha_num;
-string_literal::=QUOTE alpha_num QUOTE;
-char_literal::=SINGLEQUOTE alpha_num SINGLEQUOTE;
+main_method::= MAIN PARA PARC LLAV LLAC {: enlistar("main method "+contador+""); contador++; :};
+
+field_declm::=field_decl:a {: enlistar("field declaration "+contador+"");contador++; RESULT=a;:}
+                ;
+field_decl::= field_decl2:a  PC {:
+                contador++;
+                Nodo n1 = new Nodo("field_decl",contador);
+                n1.addHijo(a);
+                RESULT=n1;:}
+            | field_decl2:a PC field_decl:b {:
+                contador++;
+                b.addHijo(a);
+                RESULT=b;:};
+field_decl2::= field_decl2:a COMMA field_decl3:b {:
+                contador++;
+                a.addHijo(b);
+                RESULT=a;:}
+            |type:a field_decl3:b {:
+                contador++;
+                Nodo n1 = new Nodo("field_declm",contador);
+                Nodo tipo = new Nodo("type",contador);
+                tipo.addHijo(a);
+                n1.addHijo(tipo);
+                n1.addHijo(b);
+                RESULT=n1;:};
+field_decl3::= id:a {:contador++; 
+                Nodo n1 = new Nodo("id",contador); 
+                n1.addHijo(a);
+                RESULT=n1;:}
+            |id:a CORC NUM:b CORD {:contador++;
+                Nodo n1 = new Nodo("id[index]",contador);
+                Nodo n2 = new Nodo("int_literal",contador);
+                Nodo n3 = new Nodo("id",contador);
+                Nodo n4 = new Nodo(b.toString(),contador);
+                n3.addHijo(a);
+                n2.addHijo(n4);
+                n1.addHijo(n3);
+                n1.addHijo(n2);
+                RESULT=n1;
+                :};
+
+ 
+method_declm::=method_decl:a {: enlistar("method declaration "+contador+""); contador++;
+                RESULT=a;:}
+            ;
+method_decl::=method_decl2:a id:b PARA method_decl5:c PARC block:d {:
+                contador++;
+                Nodo n3 = new Nodo("method_decl",contador);
+                Nodo n1 = new Nodo("method_declm",contador);
+                Nodo n2 = new Nodo("id",contador);
+                n2.addHijo(b);
+                n1.addHijo(a);
+                n1.addHijo(n2);
+                if(c!=null){
+                n1.addHijo(c);}
+                n1.addHijo(d);
+                n3.addHijo(n1);
+                RESULT=n3;:}
+            | method_decl2:a id:b PARA method_decl5:c PARC block:d method_decl:e {:
+                contador++;
+                Nodo n1 = new Nodo("method_declm",contador);
+                Nodo n2 = new Nodo("id",contador);
+                n2.addHijo(b);
+                n1.addHijo(a);
+                n1.addHijo(n2);
+                if(c!=null){
+                n1.addHijo(c);}
+                n1.addHijo(d);
+                e.addHijo(n1);
+                RESULT=e;:};
+method_decl2::=VOID {:contador++;
+                Nodo n1 = new Nodo("void",contador);
+                RESULT=n1;:}
+            |type:a ;
+method_decl3::=method_decl3:a COMMA method_decl4:b {:
+                contador++;
+                a.addHijo(b);
+                RESULT=a;:}
+            | method_decl4:a {:
+                contador++;
+                Nodo n1 = new Nodo("type_id",contador);
+                n1.addHijo(a);
+                RESULT=n1;:};
+method_decl4::=type:a id:b {:
+                contador++;
+                Nodo n1 = new Nodo("type_id",contador);
+                Nodo n2 = new Nodo("type",contador);
+                n2.addHijo(a);
+                Nodo n3 = new Nodo("id",contador);
+                n3.addHijo(b);
+                n1.addHijo(n2);
+                n1.addHijo(n3);
+                RESULT=n1;:};
+method_decl5::=method_decl3:a {:RESULT=a;:} 
+            | {:RESULT=null;:};
+
+type::= INT {: enlistar("INT "+contador+""); contador++;  
+                Nodo n1 = new Nodo("INT",contador);
+                RESULT=n1;:}
+            | BOOLEAN {: enlistar("BOOLEAN "+contador+""); contador++; 
+                Nodo n1 = new Nodo("BOOL",contador);
+                RESULT=n1;:};
+
+block::= LLAV var_declm:a statement_mm:b LLAC {: enlistar("block "+contador+""); contador++;
+             Nodo n1 = new Nodo("block",contador);
+             if(a!=null){
+                n1.addHijo(a);}
+             if(b!=null){
+                n1.addHijo(b);}
+             RESULT=n1;:};
+             
+var_declm::=var_decl:a {: enlistar("var declaration "+contador+"");contador++; 
+                RESULT=a;:}
+            | {:RESULT=null;:};
+var_decl::=type:a var_decl2:b PC {:
+            contador++;
+            Nodo n1 = new Nodo("var_decl",contador);
+            Nodo n2 = new Nodo("type",contador);
+            n2.addHijo(a);
+            b.addHijo(n2);
+            n1.addHijo(b);
+            RESULT=n1;
+            :}
+        | type:a var_decl2:b PC var_decl:c {:
+            contador++;
+            Nodo n2 = new Nodo("type",contador);
+            n2.addHijo(a);
+            b.addHijo(n2);
+            c.addHijo(b);
+            RESULT=c;
+            :};
+var_decl2::=var_decl2:a COMMA id:b {:
+                contador++;
+                Nodo n1 = new Nodo("id",contador);
+                n1.addHijo(b);
+                a.addHijo(n1);
+                RESULT=a;:}
+            | id:a {:
+                contador++;
+                Nodo n1 = new Nodo("var_declm",contador);
+                Nodo n2 = new Nodo("id",contador);
+                n2.addHijo(a);
+                n1.addHijo(n2);
+                RESULT=n1;:};
+
+statement_m::=statement:a statement_m:b {:
+                b.addHijo(a);
+                RESULT=b;
+                :}
+            | statement:a {:
+                Nodo n1 = new Nodo("statement",contador);
+                n1.addHijo(a);
+                RESULT=n1;:};
+statement::=location:a assign_op:b expr:c PC {: enlistar("location assign expr "+contador+"");contador++; 
+                Nodo n1 = new Nodo("location_assign_expr",contador);
+                n1.addHijo(a);
+                n1.addHijo(b);
+                n1.addHijo(c);
+                RESULT=n1;:}
+            | method_call:a PC {: enlistar("method_call "+contador+"");contador++; 
+                Nodo n1 = new Nodo("method_call",contador);
+                n1.addHijo(a);
+                RESULT=n1;:}
+            | IF PARA expr:a PARC block:b else_blockm:c {: enlistar("if "+contador+"");contador++; 
+                Nodo n1 = new Nodo("if_statement",contador);
+                Nodo n2 = new Nodo("if",contador);
+                n1.addHijo(n2);
+                n1.addHijo(a);
+                n1.addHijo(b);
+                if(c!=null){
+                n1.addHijo(c);}
+                RESULT=n1;:}
+            | FOR id:a EQUAL expr:b COMMA expr:c block:d {: enlistar("for "+contador+"");contador++; 
+                Nodo n1 = new Nodo("for_statementm",contador);
+                Nodo n2 = new Nodo("for",contador);
+                Nodo n3 = new Nodo("igual",contador);
+                Nodo n4 = new Nodo("id",contador);
+                n4.addHijo(a);
+                n1.addHijo(n2);
+                n1.addHijo(n4);
+                n1.addHijo(n3);
+                n1.addHijo(b);
+                n1.addHijo(c);
+                n1.addHijo(d);
+                RESULT=n1;
+                :}
+            | RETURN exprm:a PC {: enlistar("return "+contador+"");contador++; 
+                Nodo n1 = new Nodo("return_expr",contador);
+                Nodo n2 = new Nodo("return",contador);
+                n1.addHijo(n2);
+                if(a!=null){
+                n1.addHijo(a);}
+                
+                RESULT=n1;:}
+            | BREAK PC {: enlistar("break "+contador+"");contador++; 
+                Nodo n1 = new Nodo("break_statementm",contador);
+                Nodo n2 = new Nodo("break",contador);
+                n1.addHijo(n2);
+                RESULT=n1;:}
+            | CONTINUE PC {: enlistar("continue "+contador+"");contador++; 
+                Nodo n1 = new Nodo("continue_statementm",contador);
+                Nodo n2 = new Nodo("continue",contador);
+                n1.addHijo(n2);
+                RESULT=n1;:}
+            | block:a {: enlistar("block "+contador+"");contador++; 
+                RESULT=a;:};
+statement_mm::=statement_m:a {:RESULT=a;:}
+                | {:RESULT=null;:};
+
+else_blockm::=ELSE block:a {: enlistar("else "+contador+"");contador++; 
+                Nodo n1 = new Nodo("else_block",contador);
+                n1.addHijo(a);
+                RESULT=n1;:}
+            | {:RESULT=null;:};
+
+assign_op::=EQUAL {: enlistar("= "+contador+"");contador++; 
+                Nodo n1 = new Nodo("assign_op",contador);
+                Nodo n2 = new Nodo("igual",contador);
+                n1.addHijo(n2);
+                RESULT=n1;:}
+            | PLUS EQUAL  {: enlistar("+= "+contador+"");contador++; 
+                Nodo n1 = new Nodo("assign_op",contador);
+                Nodo n2 = new Nodo("mas_igual",contador);
+                n1.addHijo(n2);
+                RESULT=n1;:}
+            | MINUS EQUAL {: enlistar("-= "+contador+"");contador++; 
+                Nodo n1 = new Nodo("assign_op",contador);
+                Nodo n2 = new Nodo("menos_igual",contador);
+                n1.addHijo(n2);
+                RESULT=n1;:};
+
+method_call ::= method_name:a PARA expr3:b PARC {: contador++;
+            Nodo n1 = new Nodo("method_call",contador);
+            n1.addHijo(a);
+            if(b!=null){
+            n1.addHijo(b);}
+            RESULT=n1;:}
+        | CALLOUT PARA string_literal:a callout_argm:b PARC {: enlistar("method_call "+contador+"");contador++; 
+            Nodo n1 = new Nodo("method_call",contador);
+            Nodo n2 = new Nodo("callout",contador);
+            n1.addHijo(n2);
+            n1.addHijo(a);
+            if(b!=null){
+                n1.addHijo(b);}
+            RESULT=n1;
+            :};
+
+exprm::=expr:a {: enlistar("expr "+contador+"");contador++; 
+            RESULT=a;:}
+        | {:RESULT=null;:};
+expr::= location:a {: enlistar("location "+contador+"");contador++; 
+            Nodo n1 = new Nodo("expr",contador);
+            n1.addHijo(a);
+            RESULT=n1;:}
+        | method_call:a {: enlistar("method_call "+contador+"");contador++; 
+            Nodo n1 = new Nodo("expr",contador);
+            n1.addHijo(a);
+            RESULT=n1;:}
+        | literal:a {: enlistar("literal "+contador+"");contador++; 
+            Nodo n1 = new Nodo("expr",contador);
+            n1.addHijo(a);
+            RESULT=n1;:}
+        | expr:a bin_op:b expr:c {: enlistar("expr bin_op expr "+contador+"");contador++; 
+            Nodo n1 = new Nodo("expr",contador);
+            n1.addHijo(a);
+            n1.addHijo(b);
+            n1.addHijo(c);
+            RESULT=n1;:}
+        | MINUS expr:a {: enlistar("- expr "+contador+"");contador++; 
+            Nodo n1 = new Nodo("expr",contador);
+            Nodo n2 = new Nodo("menos",contador);
+            n1.addHijo(n2); 
+            n1.addHijo(a);
+            RESULT=n1;:}
+        | EXCLA expr:a {: enlistar("! expr "+contador+"");contador++; 
+            Nodo n1 = new Nodo("expr",contador);
+            Nodo n2 = new Nodo("excla",contador);
+            n1.addHijo(n2); 
+            n1.addHijo(a);
+            RESULT=n1;:}
+        | PARA expr:a PARC {: enlistar("( expr ) "+contador+"");contador++; 
+            Nodo n1 = new Nodo("expr",contador);
+            Nodo n2 = new Nodo("para_expr_para",contador);
+            n1.addHijo(n2); 
+            n2.addHijo(a);
+            RESULT=n1;:};
+expr2::=expr2:a COMMA expr:b {:
+            contador++;
+            a.addHijo(b);
+            RESULT=a;:}
+        | expr:a {:
+            contador++;
+            Nodo n1 = new Nodo("exprm",contador);
+            n1.addHijo(a);
+            RESULT=n1;:};
+expr3::=expr2:a {:
+            RESULT=a;:}
+        | {:RESULT=null;:};
+
+callout_arg::=expr:a {: enlistar("callout expr "+contador+"");contador++; 
+            Nodo n1 = new Nodo("callout_arg",contador);
+            n1.addHijo(a);
+            RESULT=n1;:}
+        |string_literal:a {: enlistar("callout string_literal "+contador+"");contador++; 
+            Nodo n1 = new Nodo("callout_arg",contador);
+            n1.addHijo(a);
+            RESULT=n1;:};
+callout_argm::= COMMA callout_arg2:a {: enlistar("callout argument "+contador+""); 
+            RESULT=a;:}
+        | {:RESULT=null;:};
+callout_arg2::=callout_arg2:a COMMA callout_arg:b {:contador++;
+            a.addHijo(b);
+            RESULT=a;:}
+        | callout_arg:a {:contador++;
+            Nodo n1 = new Nodo("callout_argm",contador);
+            n1.addHijo(a);
+            RESULT=n1;:};
+
+method_name::=id:a {: enlistar(""+a+" "+contador+"");contador++; 
+            Nodo n1 = new Nodo("method_name",contador);
+            Nodo n2 = new Nodo("id",contador);
+            n2.addHijo(a);
+            n1.addHijo(n2);
+            RESULT=n1;
+            :};
+
+location::=id:a {: enlistar("location"); 
+            contador++;
+            Nodo n1 = new Nodo("location",contador);
+            Nodo n2 = new Nodo("id",contador);
+            n2.addHijo(a);
+            n1.addHijo(n2);
+            RESULT=n1;:}
+        | id:a CORC expr:b CORD {: enlistar("id[index] "+contador+"");contador++; 
+            Nodo n1 = new Nodo("location",contador);
+            Nodo n2 = new Nodo("id[expr]",contador);
+            Nodo n3 = new Nodo("id",contador);
+            n3.addHijo(a);
+            n2.addHijo(n3);
+            n2.addHijo(b);
+            n1.addHijo(n2);
+            RESULT=n1;
+            :};
+
+bin_op::=arith_op:a {: enlistar("arith_op "+contador+"");contador++; 
+            Nodo n1 = new Nodo("bin_op",contador);
+            n1.addHijo(a);
+            RESULT=n1;:}
+        | rel_op:a {: enlistar("rel_op "+contador+"");contador++; 
+            Nodo n1 = new Nodo("bin_op",contador);
+            n1.addHijo(a);
+            RESULT=n1;:}
+        | eq_op:a {: enlistar("eq_op "+contador+"");contador++; 
+            Nodo n1 = new Nodo("bin_op",contador);
+            n1.addHijo(a);
+            RESULT=n1;:}
+        | cond_op:a {: enlistar("cond_op "+contador+"");contador++; 
+            Nodo n1 = new Nodo("bin_op",contador);
+            n1.addHijo(a);
+            RESULT=n1;:};
+
+arith_op::=PLUS {: enlistar("+ "+contador+"");contador++; 
+            Nodo n1 = new Nodo("arith_op",contador);
+            Nodo n2 = new Nodo("mas",contador);
+            n1.addHijo(n2);
+            RESULT=n1;
+            :}
+        | MINUS {: enlistar("- "+contador+"");contador++; 
+            Nodo n1 = new Nodo("arith_op",contador);
+            Nodo n2 = new Nodo("menos",contador);
+            n1.addHijo(n2);
+            RESULT=n1;:}
+        | MORE {: enlistar("* "+contador+"");contador++; 
+            Nodo n1 = new Nodo("arith_op",contador);
+            Nodo n2 = new Nodo("multi",contador);
+            n1.addHijo(n2);
+            RESULT=n1;:}
+        | DIV {: enlistar("/ "+contador+"");contador++; 
+            Nodo n1 = new Nodo("arith_op",contador);
+            Nodo n2 = new Nodo("div",contador);
+            n1.addHijo(n2);
+            RESULT=n1;:}
+        | PERCENT {: enlistar("% "+contador+"");contador++; 
+            Nodo n1 = new Nodo("arith_op",contador);
+            Nodo n2 = new Nodo("percent",contador);
+            n1.addHijo(n2);
+            RESULT=n1;:};
+
+rel_op::= MINUS2 {: enlistar("< "+contador+"");contador++; 
+            Nodo n1 = new Nodo("rel_op",contador);
+            Nodo n2 = new Nodo("menor",contador);
+            n1.addHijo(n2);
+            RESULT=n1;:}
+        | MINUS3 {: enlistar("> "+contador+"");contador++;
+            Nodo n1 = new Nodo("rel_op",contador);
+            Nodo n2 = new Nodo("mayor",contador);
+            n1.addHijo(n2);
+            RESULT=n1;:}
+        | MINUS2 EQUAL {: enlistar("<= "+contador+"");contador++; 
+            Nodo n1 = new Nodo("rel_op",contador);
+            Nodo n2 = new Nodo("menor_igual",contador);
+            n1.addHijo(n2);
+            RESULT=n1;:}
+        | MINUS3 EQUAL {: enlistar(">= "+contador+"");contador++; 
+            Nodo n1 = new Nodo("rel_op",contador);
+            Nodo n2 = new Nodo("mayor_igual",contador);
+            n1.addHijo(n2);
+            RESULT=n1;:};
+
+eq_op::=EQUAL EQUAL {: enlistar("== "+contador+"");contador++; 
+            Nodo n1 = new Nodo("eq_op",contador);
+            Nodo n2 = new Nodo("igual igual",contador);
+            n1.addHijo(n2);
+            RESULT=n1;:}
+        | EXCLA EQUAL {: enlistar("!= "+contador+"");contador++; 
+            Nodo n1 = new Nodo("eq_op",contador);
+            Nodo n2 = new Nodo("exla igual",contador);
+            n1.addHijo(n2);
+            RESULT=n1;:};
+
+cond_op::=CAFE CAFE {: enlistar("&& "+contador+"");contador++; 
+            Nodo n1 = new Nodo("cond_op",contador);
+            Nodo n2 = new Nodo("cafe_cafe",contador);
+            n1.addHijo(n2);
+            RESULT=n1;:}
+        | OR OR {: enlistar("|| "+contador+"");contador++; 
+            Nodo n1 = new Nodo("cond_op",contador);
+            Nodo n2 = new Nodo("or_or",contador);
+            n1.addHijo(n2);
+            RESULT=n1;:};
+
+literal::=NUM:a {: enlistar(""+a+ " "+contador+"");contador++; 
+            Nodo n1 = new Nodo("literal",contador);
+            Nodo n2 = new Nodo("int_literal",contador);
+            Nodo n3 = new Nodo(a.toString(),contador);
+            n2.addHijo(n3);
+            n1.addHijo(n2);
+            RESULT=n1;:}
+        | bool_literal:a {: enlistar("bool literal "+contador+"");contador++; 
+            Nodo n1 = new Nodo("literal",contador);
+            n1.addHijo(a);
+            RESULT=n1;:}
+        | char_literal:b {: enlistar("char literal "+contador+"");contador++; 
+            Nodo n1 = new Nodo("literal",contador);
+            n1.addHijo(b);
+            RESULT=n1;:};
+
+bool_literal::=TRUE {: enlistar("TRUE "+contador+"");contador++; 
+            Nodo n1 = new Nodo("bool_literal",contador);
+            Nodo n2 = new Nodo("true",contador);
+            n1.addHijo(n2);
+            RESULT=n1;:}
+        |FALSE {: enlistar("FALSE "+contador+"");contador++; 
+            Nodo n1 = new Nodo("bool_literal",contador);
+            Nodo n2 = new Nodo("false",contador);
+            n1.addHijo(n2);
+            RESULT=n1;:};
+
+id::=alpha_num:a {:  enlistar(""+a+" "+contador+"");contador++; 
+        Nodo n1 = new Nodo(a.toString(),contador);
+        RESULT=n1;:};
+
+string_literal::=QUOTE alpha_num:a QUOTE {: enlistar("string_literal "+contador+"");contador++; 
+            Nodo n1 = new Nodo("string_literal",contador);
+            Nodo n2 = new Nodo(a.toString(),contador);
+            n1.addHijo(n2);
+            RESULT=n1;:};
+
+char_literal::=SINGLEQUOTE alpha_num:a SINGLEQUOTE {: enlistar("char literal "+contador+"");contador++; 
+            Nodo n1 = new Nodo("char_literal",contador);
+            Nodo n2 = new Nodo(a.toString(),contador);
+            n1.addHijo(n2);
+            RESULT=n1;:};
+
 
