@@ -36,6 +36,23 @@ public class Semantic {
         public Semantic() throws Exception{
             generar_arbol();
             scopes.add("global");
+        if(arbol!=null){
+            //declara todas las variables, los arreglos, los metodos y sus parametros en la tabla de simbolos.
+            declaracion_variables(arbol,"inicio");
+            //comprobacion de uso de variable segun scope
+            location(arbol, "global");
+            //chequeo de returns en metodos int y bool
+            rev_metodos(arbol);
+            //tipos de expresiones
+            expr_type(arbol,"global");
+            //comprueba los parametros de las method_call con los metodos declarados en la tabla de simbolos
+            parametros_method_call(arbol,"global");
+            //comprueba porque este el methodo main
+            ismain();
+            //comprueba las asignaciones con location
+            location_assigns(arbol,"global");
+            
+        }
         }
         
        
@@ -133,7 +150,7 @@ public class Semantic {
                 
                 String expr1_type=expr_type2(hoja,scopes);
                 String expr2_type=expr_type2(hoja.getHijos().get(2),scopes);
-                System.out.println(hoja.getContenido()+hoja.getId()+","+expr1_type+", "+expr2_type);
+                //System.out.println(hoja.getContenido()+hoja.getId()+","+expr1_type+", "+expr2_type);
                 if(expr1_type.equals(expr2_type)){}else{
                     errores.add("Location_assign id: "+hoja.getId()+" no cumple con tipos");
                 }

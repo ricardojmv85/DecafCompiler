@@ -7,9 +7,11 @@ package codegen;
 
 import ast.Nodo;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,11 +29,20 @@ public class Codegen {
     public Nodo arbol;
     public ArrayList<List> tablita = new ArrayList<List>();
     public Codegen() throws Exception{
-            generar_arbol();
-            genTablita(arbol);
-            //caller_assign();
-            methodos(arbol);
+        Semantic semantica = new Semantic();
+        if(0!=semantica.errores.size()){
+                System.out.println("Errores Semanticos");
+                System.out.println(semantica.errores);
+        }else{
+            arbol=semantica.arbol;
+            if(arbol!=null){
+                genTablita(arbol);
+                //caller_assign();
+                methodos(arbol);
+            }
         }
+            
+    }
     public Integer num_fields;
     public Integer contador_ts=0;
     public Nodo este;
@@ -271,8 +282,9 @@ public class Codegen {
                                 }
                             }
                             //se genera el block se supone
-                            statements(statement.getHijos().get(0),cant_ts,tabla_local);
+                            statements(statement.getHijos().get(2),cant_ts,tabla_local);
                             System.out.println("jr $ra");
+                            System.out.println("#termina el bloque");
                         }
 
                     }
@@ -428,5 +440,28 @@ public class Codegen {
             return (expresiones(hoja.getHijos().get(0).getHijos().get(0),ts,tabla_local));
         }
         return "";
+    }
+    public void imprimir(String argumento){
+        BufferedWriter bw = null;
+        FileWriter fw = null;
+        try {
+
+            File file = new File("D:\\Sexto Semestre\\Compiladores\\Compiler\\src\\codegen\\codegen");
+            fw = new FileWriter(file.getAbsoluteFile(), true);
+            bw = new BufferedWriter(fw);
+            bw.write(argumento+"\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                //Cierra instancias de FileWriter y BufferedWriter
+                if (bw != null)
+                    bw.close();
+                if (fw != null)
+                    fw.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 }

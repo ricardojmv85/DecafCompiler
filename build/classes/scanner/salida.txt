@@ -1,1 +1,1 @@
-Error Sintactio Recuperado int Linea 12 Columna 8
+Error Sintactio Recuperado if Linea 12 Columna 8

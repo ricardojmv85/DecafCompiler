@@ -44,34 +44,58 @@ public class Compiler {
         System.out.println("Ingrese Comando: ");
         String stage = reader.nextLine(); 
         stage=stage.toString();
-        if("scan".equals(stage)){
+        if("compiler -target scan".equals(stage)){
             scaner();
         }
-        else if("scan -debug".equals(stage)){
+        else if("compiler -target scan -debug".equals(stage)){
+            System.out.println("");
+            System.out.println("Scan debug");
             scaner_debug();
         }
-        else if("parser".equals(stage)){
+        else if("compiler -target parser".equals(stage)){
             parser();
         }
-        else if("parser -debug".equals(stage)){
+        else if("compiler -target parser -debug".equals(stage)){
+            System.out.println("");
+            System.out.println("Scan debug");
+            scaner_debug();
+            System.out.println("Programa escaneado");
+            System.out.println("");
+            System.out.println("Parser debug");
             parser_debug();
         }
-        else if("-help".equals(stage)){
-            System.out.println("Uso: [stage] [-debug] \n "
-                + "[stage] Hasta que proceso del compilador se desea ejecutar. \n"
-                + "[-debug] Opcion si se desea visualizar en consola los procesos en tiempo real.");
+        else if("compiler -target ast".equals(stage)){
+            ast();
         }
-        else if("ast".equals(stage)){
-        ast();
+        else if("compiler -target ast -debug".equals(stage)){
+        System.out.println("");
+            System.out.println("Scan debug");
+            scaner_debug();
+            System.out.println("Programa escaneado");
+            System.out.println("");
+        ast_debug();
         }
-        else if("semantic".equals(stage)){
+        else if("compiler -target semantic".equals(stage)){
         semantic();
         }
-         else if("semantic -debug".equals(stage)){
-        semantic_debug();
+         else if("compiler -target semantic -debug".equals(stage)){
+            System.out.println("");
+            System.out.println("Scan debug");
+            scaner_debug();
+            System.out.println("Programa escaneado");
+            System.out.println("");
+            ast_debug();
+            System.out.println("");
+            semantic_debug();
+            
         }
-        else if("codegen".equals(stage)){
+        else if("compiler -target codegen".equals(stage)){
         codegene();
+        }
+        else if("-help".equals(stage)){
+            System.out.println("Uso: compiler [-target] <stage> [-debug] \n "
+                + "[stage] Hasta que proceso del compilador se desea ejecutar. \n"
+                + "[debug] Opcion si se desea visualizar en consola los procesos en tiempo real.");
         }
         else {
             System.out.println("'-help' para mostrar la lista de comandos.");
@@ -104,6 +128,7 @@ public class Compiler {
             } catch (IOException ex) {
             Logger.getLogger(Compiler.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println("Scan Completo");
     }
     public static void scaner_debug() throws Exception{
          FileReader fr = null;
@@ -193,76 +218,85 @@ public class Compiler {
                 }
                 System.out.println(sintactico.Gramaticas.get(sintactico.Gramaticas.size()-1));
                 if (sintactico.padre!=null){
-                imprime(sintactico.padre);}else{
-                System.out.println("Error en parser");}
+                    
+                    imprimir2("digraph example {");
+                    imprime3(sintactico.padre);
+                    imprimir2("}");
+                }else{}
+            } catch (FileNotFoundException ex) {   
+            }
+            
+    }
+    public static void ast_debug() throws Exception{
+    FileReader fr = null;
+            try {
+                File archivo = new File ("D:\\Sexto Semestre\\Compiladores\\Compiler\\src\\scanner\\entrada.txt");
+                fr = new FileReader (archivo);
+                BufferedReader br = new BufferedReader(fr);
+                Analizador_Lexico lexico = new Analizador_Lexico(new BufferedReader(br));
+                analisis_sintactico sintactico = new analisis_sintactico(lexico);
+                try {
+                    sintactico.parse();
+                    //System.out.println(sintactico.Gramaticas);
+                    
+                } catch (IOException e) {              
+                }
+                System.out.println("");
+                System.out.println("Parser debug");
+                for (int i=0;i<sintactico.Gramaticas.size();i++){
+                System.out.println(sintactico.Gramaticas.get(i));
+                }
+                if (sintactico.padre!=null){
+                System.out.println("");
+                System.out.println("AST debug");
+                imprime(sintactico.padre);}else{}
             } catch (FileNotFoundException ex) {   
             }
             
     }
     public static void semantic() throws Exception{
         Semantic semantica = new Semantic();
-        //declara todas las variables, los arreglos, los metodos y sus parametros en la tabla de simbolos.
-        semantica.declaracion_variables(semantica.arbol,"inicio");
-        System.out.println(""); 
-       
         
-        //comprobacion de uso de variable segun scope
-        semantica.location(semantica.arbol, "global");
-        //chequeo de returns en metodos int y bool
-        semantica.rev_metodos(semantica.arbol);
-        //tipos de expresiones
-        semantica.expr_type(semantica.arbol,"global");
-        //comprueba los parametros de las method_call con los metodos declarados en la tabla de simbolos
-        semantica.parametros_method_call(semantica.arbol,"global");
-        //comprueba porque este el methodo main
-        semantica.ismain();
-        //comprueba las asignaciones con location
-        //semantica.location_assigns(semantica.arbol,"global");
         if(0!=semantica.errores.size()){
-            System.out.println("Error en Semantica");
-            
-        }else{
-            System.out.println("Semantica Correcta");
-        }
+                System.out.println("Errores Semanticos");
+                System.out.println(semantica.errores);
+            }else{
+                System.out.println("Semantica Correcta");
+            }
     }
     public static void semantic_debug() throws Exception{
         Semantic semantica = new Semantic();
-        //declara todas las variables, los arreglos, los metodos y sus parametros en la tabla de simbolos.
-        semantica.declaracion_variables(semantica.arbol,"inicio");
         System.out.println(""); 
-        System.out.println("Tabla Simbolos");
-        for (Object simbolo:semantica.tabla){
-        System.out.println(simbolo);
-        }
-        //comprobacion de uso de variable segun scope
-        semantica.location(semantica.arbol, "global");
-        //chequeo de returns en metodos int y bool
-        semantica.rev_metodos(semantica.arbol);
-        //tipos de expresiones
-        semantica.expr_type(semantica.arbol,"global");
-        //comprueba los parametros de las method_call con los metodos declarados en la tabla de simbolos
-        semantica.parametros_method_call(semantica.arbol,"global");
-        //comprueba porque este el methodo main
-        semantica.ismain();
-        //comprueba las asignaciones con location
-        semantica.location_assigns(semantica.arbol,"global");
+            System.out.println("Tabla Simbolos");
+            for (Object simbolo:semantica.tabla){
+            System.out.println(simbolo);
+            }
         if(0!=semantica.errores.size()){
-            System.out.println("Errores");
-            System.out.println(semantica.errores);
-        }else{
-            System.out.println("Semantica Correcta");
-        }
+                System.out.println("Errores Semanticos");
+            }else{
+                System.out.println("Semantica Correcta");
+            }
     }
     public static void codegene() throws Exception{
+        
         Codegen codegene = new Codegen();
         //System.out.println(codegene.tablita);
     }
     public static void imprime(Nodo nodo){
         for (Nodo hijo:nodo.getHijos()){
             System.out.println('"'+nodo.getContenido()+"_"+nodo.getId()+'"'+"->"+'"'+hijo.getContenido()+"_"+hijo.getId()+'"');
-            imprimir2('"'+nodo.getContenido()+"_"+nodo.getId()+'"'+"->"+'"'+hijo.getContenido()+"_"+hijo.getId()+'"');
+            imprimir2('"'+nodo.getContenido()+"_"+nodo.getId()+'"'+"->"+'"'+hijo.getContenido()+"_"+hijo.getId()+'"'+"\n ");
             imprime(hijo);
         }
+        
+    }
+      public static void imprime3(Nodo nodo){
+        for (Nodo hijo:nodo.getHijos()){
+            //System.out.println('"'+nodo.getContenido()+"_"+nodo.getId()+'"'+"->"+'"'+hijo.getContenido()+"_"+hijo.getId()+'"');
+            imprimir2('"'+nodo.getContenido()+"_"+nodo.getId()+'"'+"->"+'"'+hijo.getContenido()+"_"+hijo.getId()+'"'+"\n ");
+            imprime3(hijo);
+        }
+        
     }
     public static void prueba() throws Exception{
     FileReader fr = null;
@@ -312,7 +346,7 @@ public class Compiler {
         FileWriter fw = null;
         try {
 
-            File file = new File("D:\\Sexto Semestre\\Compiladores\\Compiler\\src\\scanner\\ast.dot");
+            File file = new File("D:\\Sexto Semestre\\Compiladores\\Compiler\\src\\ast\\ast");
             fw = new FileWriter(file.getAbsoluteFile(), true);
             bw = new BufferedWriter(fw);
             bw.write(argumento+"\n");
