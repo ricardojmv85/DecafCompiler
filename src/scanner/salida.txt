@@ -1,1 +1,1 @@
-Error Sintactio Recuperado } Linea 12 Columna 8
+Error Sintactio Recuperado int Linea 12 Columna 8

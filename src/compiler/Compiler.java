@@ -21,6 +21,7 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import ast.Nodo;
+import codegen.Codegen;
 import scanner.Analizador_lexicup;
 import semantic.Semantic;
 
@@ -35,6 +36,7 @@ public class Compiler {
     /**
      * @param args the command line arguments
      */
+ 
     public static void main(String[] args) throws Exception {
         // TODO code application logic here
         //input de que stage se quiere
@@ -64,6 +66,12 @@ public class Compiler {
         }
         else if("semantic".equals(stage)){
         semantic();
+        }
+         else if("semantic -debug".equals(stage)){
+        semantic_debug();
+        }
+        else if("codegen".equals(stage)){
+        codegene();
         }
         else {
             System.out.println("'-help' para mostrar la lista de comandos.");
@@ -193,6 +201,33 @@ public class Compiler {
     }
     public static void semantic() throws Exception{
         Semantic semantica = new Semantic();
+        //declara todas las variables, los arreglos, los metodos y sus parametros en la tabla de simbolos.
+        semantica.declaracion_variables(semantica.arbol,"inicio");
+        System.out.println(""); 
+       
+        
+        //comprobacion de uso de variable segun scope
+        semantica.location(semantica.arbol, "global");
+        //chequeo de returns en metodos int y bool
+        semantica.rev_metodos(semantica.arbol);
+        //tipos de expresiones
+        semantica.expr_type(semantica.arbol,"global");
+        //comprueba los parametros de las method_call con los metodos declarados en la tabla de simbolos
+        semantica.parametros_method_call(semantica.arbol,"global");
+        //comprueba porque este el methodo main
+        semantica.ismain();
+        //comprueba las asignaciones con location
+        //semantica.location_assigns(semantica.arbol,"global");
+        if(0!=semantica.errores.size()){
+            System.out.println("Error en Semantica");
+            
+        }else{
+            System.out.println("Semantica Correcta");
+        }
+    }
+    public static void semantic_debug() throws Exception{
+        Semantic semantica = new Semantic();
+        //declara todas las variables, los arreglos, los metodos y sus parametros en la tabla de simbolos.
         semantica.declaracion_variables(semantica.arbol,"inicio");
         System.out.println(""); 
         System.out.println("Tabla Simbolos");
@@ -207,10 +242,20 @@ public class Compiler {
         semantica.expr_type(semantica.arbol,"global");
         //comprueba los parametros de las method_call con los metodos declarados en la tabla de simbolos
         semantica.parametros_method_call(semantica.arbol,"global");
-        
+        //comprueba porque este el methodo main
+        semantica.ismain();
+        //comprueba las asignaciones con location
+        semantica.location_assigns(semantica.arbol,"global");
         if(0!=semantica.errores.size()){
+            System.out.println("Errores");
             System.out.println(semantica.errores);
+        }else{
+            System.out.println("Semantica Correcta");
         }
+    }
+    public static void codegene() throws Exception{
+        Codegen codegene = new Codegen();
+        //System.out.println(codegene.tablita);
     }
     public static void imprime(Nodo nodo){
         for (Nodo hijo:nodo.getHijos()){

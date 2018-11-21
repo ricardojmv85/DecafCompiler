@@ -21,6 +21,10 @@ public class Nodo {
         this.id=id2;
         hijos = new ArrayList<Nodo>();
     }
+
+    public Nodo() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     public void addHijo(Nodo hijo){
         hijos.add(hijo);
     }

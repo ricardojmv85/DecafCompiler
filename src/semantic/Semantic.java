@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import parser.analisis_sintactico;
 import scanner.Analizador_Lexico;
@@ -29,6 +30,7 @@ public class Semantic {
         public ArrayList<List> tabla = new ArrayList<List>();
         public ArrayList<String> errores = new ArrayList<String>();
         public ArrayList<String> scopes = new ArrayList<String>();
+        public boolean main = false;
         
         //al ser instanciada la clase semantic construye el arbol 
         public Semantic() throws Exception{
@@ -36,13 +38,8 @@ public class Semantic {
             scopes.add("global");
         }
         
-        public ArrayList getTabla(){
-            return tabla;
-        }
-        //funcion de analisis semantico
-        public void analisis_semantico(Nodo arbol){
-            
-        }
+       
+     
         
         //funcion que genera el arbol y pone su raiz en la variable arbol
         public void generar_arbol() throws Exception{
@@ -69,8 +66,7 @@ public class Semantic {
                
         }
         
-        
-        //funcion que recorre el arbol y declara cada variables segun su scope
+        //funcion que recorre el arbol y declara los fields. methods y variables
         public void declaracion_variables(Nodo hoja,String scope) throws Exception{
             if("block".equals(hoja.getContenido())){
                 scope=hoja.getId().toString();
@@ -112,7 +108,7 @@ public class Semantic {
                             declarada=true;
                             //verifica si el id corresponde a un tipo array 
                             if(("id[expr]".equals(hoja.getHijos().get(0).getContenido()))&&(id.equals(simbolo.get(1)))&&(scopet.equals(simbolo.get(2)))&&!((simbolo.get(0).equals("INT_ARRAY"))||(simbolo.get(0).equals("BOOL_ARRAY")))){
-                                errores.add("Variable: "+id+" no de tipo array");
+                                errores.add("Variable: "+id+" de tipo array con asigancion no valida");
                             }else{
                             
                             }
@@ -120,14 +116,33 @@ public class Semantic {
                     }
                 }
                 if(declarada==false){
-                    errores.add("Variable: "+id+", no declarada");
+                    errores.add("Variable: "+id+" no declarada (SCOPE:"+scopes.get(scopes.size()-1)+")");
                 }
             }
             for (Nodo hijo:hoja.getHijos()){
                 location(hijo,dinamic_scopes);
             }
         }
-      
+        
+        //verifica que las asignaciones a locations tengan el mismo tipo
+        public void location_assigns(Nodo hoja,String scopes){
+            if("block".equals(hoja.getContenido())){
+                scopes+=","+hoja.getId().toString();
+            }
+            if("location_assign_expr".equals(hoja.getContenido())){
+                
+                String expr1_type=expr_type2(hoja,scopes);
+                String expr2_type=expr_type2(hoja.getHijos().get(2),scopes);
+                System.out.println(hoja.getContenido()+hoja.getId()+","+expr1_type+", "+expr2_type);
+                if(expr1_type.equals(expr2_type)){}else{
+                    errores.add("Location_assign id: "+hoja.getId()+" no cumple con tipos");
+                }
+                
+            }
+            for (Nodo hijo:hoja.getHijos()){
+                location_assigns(hijo,scopes);
+            }
+        }
         
         //inserta variables en tabla de simbolos en nodo var_decl segun su scope y chequea si no hay repetidas en el mismo scope
         public void var_decl(Nodo hoja,String scope){
@@ -208,6 +223,7 @@ public class Semantic {
                         }
                     }
                 }
+                
         //verifica que los metodos int y bool contengan un return
         public void rev_metodos(Nodo hoja){
             if(hoja.getContenido().equals("method_declm")){
@@ -218,11 +234,15 @@ public class Semantic {
                 }
             }
         }
+        
             //verifica que un metodo tenga return
             public void rev_metodos2(Nodo hoja){
                 String type = hoja.getHijos().get(0).getHijos().get(0).getContenido();
                 String id = hoja.getHijos().get(1).getHijos().get(0).getContenido();
-                Nodo block = hoja.getHijos().get(3);
+                
+                Nodo block = hoja.getHijos().get(hoja.getHijos().size()-1);
+                
+                String id_block = hoja.getHijos().get(hoja.getHijos().size()-1).getId().toString();
                 //verifica que el metodo sea int o bool
                 if(type.equals("INT") || type.equals("BOOL")){
                     switch (block.getHijos().size()) {
@@ -234,8 +254,8 @@ public class Semantic {
                                 for(Nodo hijo:statement.getHijos()){
                                     if (hijo.getContenido().equals("return_expr")){
                                         //revisar que la expresion sea del mismo tipo que el metodo
-                                        if(type.equals(expr_type2(hijo.getHijos().get(1),"global"))){bandera=true;}
-                                        
+                                        if(type.equals(expr_type2(hijo.getHijos().get(1),"global,"+id_block))){bandera=true;}
+                                        //System.out.println("tipo de metodo: "+type+" y tipo de return: "+expr_type2(hijo.getHijos().get(1),"global,"+id_block));
                                     }
                                 }
                                 if(!bandera){
@@ -250,9 +270,11 @@ public class Semantic {
                             for(Nodo hijo:statement.getHijos()){
                                 if (hijo.getContenido().equals("return_expr")){
                                     //falta revisar que la expresion sea del mismo tipo que el metodo
-                                    System.out.println(type);
-                                    System.out.println(expr_type2(hijo.getHijos().get(1),"global"));
-                                    if(type.equals(expr_type2(hijo.getHijos().get(1),"global"))){bandera=true;}
+                                    //System.out.println(type);
+                                    //System.out.println(expr_type2(hijo.getHijos().get(1),"global"));
+                                    if(type.equals(expr_type2(hijo.getHijos().get(1),"global,"+id_block))){bandera=true;}
+                                    //System.out.println("tipo de metodo: "+type+" y tipo de return: "+expr_type2(hijo.getHijos().get(1),"global,"+id_block));
+
                                 }
                             }
                             if(!bandera){
@@ -268,7 +290,8 @@ public class Semantic {
         //recore el arbol para ver el tipo de cada expresion
         public void expr_type(Nodo hoja,String scopes){
             if("expr".equals(hoja.getContenido())){
-                System.out.print("expr_"+hoja.getId()+expr_type2(hoja,scopes)+"\n");
+                //System.out.print("expr_"+hoja.getId()+expr_type2(hoja,scopes)+"\n");
+                String exp=expr_type2(hoja,scopes);
             }else if("block".equals(hoja.getContenido())){
                 scopes+=","+hoja.getId().toString();
             }
@@ -286,9 +309,10 @@ public class Semantic {
                 String id=hoja.getHijos().get(0).getHijos().get(0).getHijos().get(0).getContenido();
                 boolean bandera=false;
                 List<String> scopes = new ArrayList<String>(Arrays.asList(scops.split(",")));
+                Collections.reverse(scopes);
                 for(String scope:scopes){
                     for (List simbolo:tabla){
-                        if(simbolo.get(1).equals(id)&&simbolo.get(2).equals(scope)){
+                        if(simbolo.get(1).equals(id)&&simbolo.get(2).equals(scope)&&(type.equals(""))){
                             bandera=true;
                             type+=simbolo.get(0);
                         }
@@ -296,6 +320,7 @@ public class Semantic {
                 }
                 if(!bandera){
                     type="error";
+                    //errores.add("Location "+id+" no declarada");
                 }
             }
             //cuando la expresion es literal
@@ -312,19 +337,19 @@ public class Semantic {
                 switch (bin_op) {
                     case "arith_op":
                         if(expr1_type.equals("INT")&&expr2_type.equals("INT")){type="INT";}
-                        else{type="error";}
+                        else{type="error"; errores.add("arith_op no cumple con tipos");}
                         break;
                     case "rel_op":
                         if(expr1_type.equals("INT")&&expr2_type.equals("INT")){type="INT";}
-                        else{type="error";}
+                        else{type="error"; errores.add("rel_op no cumple con tipos");}
                         break;
                     case "eq_op":
                         if((expr1_type.equals("INT")&&expr2_type.equals("INT"))||(expr1_type.equals("BOOL")&&expr2_type.equals("BOOL"))){type=expr2_type;}
-                        else{type="error";}
+                        else{type="error";errores.add("eq_op no cumple con tipos");}
                         break;
                     case "cond_op":
                         if(expr1_type.equals("BOOL")&&expr2_type.equals("BOOL")){type="BOOL";}
-                        else{type="error";}
+                        else{type="error";errores.add("cond_op no cumple con tipos");}
                         break;
                     default:
                         break;
@@ -348,6 +373,8 @@ public class Semantic {
                 if(!bandera){
                     type="error";
                 }
+            }else if (hoja.getHijos().get(0).getContenido().equals("para_expr_para")){
+                return expr_type2(hoja.getHijos().get(0).getHijos().get(0),scops);
             }
             return type;
         }
@@ -358,8 +385,17 @@ public class Semantic {
             String id =hoja.getHijos().get(1).getHijos().get(0).getContenido();
             String type=hoja.getHijos().get(0).getHijos().get(0).getContenido();
             String parameter_types ="[";
-            for (Nodo type_ids:hoja.getHijos().get(2).getHijos()){parameter_types+=type_ids.getHijos().get(0).getHijos().get(0).getContenido()+", ";}
-            parameter_types=parameter_types.substring(0,parameter_types.length()-2);
+            if (hoja.getHijos().size()>3){
+                for (Nodo type_ids:hoja.getHijos().get(2).getHijos()){parameter_types+=type_ids.getHijos().get(0).getHijos().get(0).getContenido()+", ";
+                    ArrayList<String> simbolo2= new ArrayList<String>();
+                    simbolo2.add(type_ids.getHijos().get(0).getHijos().get(0).getContenido());
+                    simbolo2.add(type_ids.getHijos().get(1).getHijos().get(0).getContenido());
+                    simbolo2.add(hoja.getHijos().get(hoja.getHijos().size()-1).getId().toString());
+                    simbolo2.add("false");
+                    tabla.add(simbolo2);
+                }
+                parameter_types=parameter_types.substring(0,parameter_types.length()-2);
+            }
             parameter_types+="]";
             //hago un simbolo con el tipo, contenido,scope y un boolean de comprobado
             simbolo.add(type);
@@ -368,6 +404,9 @@ public class Semantic {
             simbolo.add("false");
             simbolo.add(parameter_types);
             tabla.add(simbolo);
+            if(id.equals("main")){
+                main=true;
+            }
         }
         
         //chequea los parametros de los method calls con los metodos
@@ -375,8 +414,11 @@ public class Semantic {
             if(hoja.getContenido().equals("method_call")){
                 String parameters1="[";
                 boolean bandera=false;
-                for(Nodo expr:hoja.getHijos().get(1).getHijos()){parameters1+=expr_type2(expr,scopes)+", ";}
-                parameters1=parameters1.substring(0,parameters1.length()-2);
+                if(hoja.getHijos().size()>1){
+                    for(Nodo expr:hoja.getHijos().get(1).getHijos()){parameters1+=expr_type2(expr,scopes)+", ";}
+                    parameters1=parameters1.substring(0,parameters1.length()-2);
+                }
+                
                 parameters1+="]";
                 String id_method=hoja.getHijos().get(0).getHijos().get(0).getHijos().get(0).getContenido();
                 for(List simbolo:tabla){
@@ -387,16 +429,28 @@ public class Semantic {
                         }
                     }
                 }
-                if(!bandera){errores.add("methodo "+id_method+" no coincide con sus parametros");}
+                if(!bandera){errores.add("methodo call "+id_method+" no coincide con sus parametros");}
             }else if("block".equals(hoja.getContenido())){   
                 scopes+=","+hoja.getId().toString();
             }
             for (Nodo hijo:hoja.getHijos()){parametros_method_call(hijo,scopes);}
         }
-        
+        //chequea si existe el method main
+         public void ismain(){
+            if(main==false){
+                errores.add("main faltante");
+            }
+        }
         //retorna el arbol
         public Nodo getArbol(){
             return arbol;
         }
+        public ArrayList getTabla(){
+            if(errores.size()>0){
+            return null;
+            }else{
+            return tabla;}
+        }
+       
         
 }

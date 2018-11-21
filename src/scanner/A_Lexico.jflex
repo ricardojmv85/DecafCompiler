@@ -64,8 +64,7 @@ new_line =  \r|\n|\r\n;
 white_space = {new_line} | [ \t\f]
 numero = [0-9]
 letra = [a-fA-F]
-hex_digit= [numero letra]
-hex=[0x hex_digit hex_digit*]
+hex = 0[xX][0-9A-Fa-f]+
 alfanum = [:jletter:] [:jletterdigit:]*
 //------> Estados
 
@@ -130,6 +129,7 @@ alfanum = [:jletter:] [:jletterdigit:]*
 
 //-------> Simbolos ER
 <YYINITIAL> {numero}+    { enlistar("Type: NUM, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+" "); return new Symbol(Simbolos.NUM, yycolumn, yyline, yytext()); }
+<YYINITIAL> {hex}    { enlistar("Type: HEX, Value: "+yytext()+", Column: "+yycolumn+", Line: "+yyline+" "); return new Symbol(Simbolos.HEX, yycolumn, yyline, yytext()); }
 
 
 //------> Errores Lexicos

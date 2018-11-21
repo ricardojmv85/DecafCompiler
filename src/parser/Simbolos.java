@@ -15,6 +15,7 @@ public class Simbolos {
   public static final int CONTINUE = 39;
   public static final int PC = 19;
   public static final int INT = 44;
+  public static final int HEX = 53;
   public static final int FOR = 42;
   public static final int MINUS = 3;
   public static final int FLOOR = 33;
@@ -114,7 +115,8 @@ public class Simbolos {
   "PROGRAM",
   "MAIN",
   "alpha_num",
-  "NUM"
+  "NUM",
+  "HEX"
   };
 }
 

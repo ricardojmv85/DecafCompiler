@@ -1,17 +1,18 @@
 class Program { 
-        main ( ) { }
-        int que[23];
-        int man;
-        boolean saber;
-        int cabal ( int cabal, boolean sepa){return que;}
-        
-        boolean amigo( int men, boolean saber){
-            int perro;
-            boolean saber;
-            boolean amiga;
-            return saber;
-        }
-        
-        
-
+    int var1;
+    int var2;
+    main(){
+        int var3;
+        var1=4;
+        var2=3;
+        var3=metodo1(var1,var2);
+    }
+    int metodo1(int n1, int n2){
+        return metodo2(n1,n2);
+    }
+    int metodo2(int n3, int n4){
+        return n3+n4;
+    }
+   
+    
 }

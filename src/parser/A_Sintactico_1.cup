@@ -74,7 +74,7 @@ terminal PLUS,MINUS,MORE,DIV,COMMENT,PARA,PARC,EXCLA,QUOTE,NUMERAL,DOLAR,
 PERCENT,CAFE,SINGLEQUOTE,POINT,COMMA,DPOINT,PC,MINUS2,EQUAL,MINUS3,
 INTER,TILD,LLAV,LLAC,OR,EQUALS,CORC,CORD,DIAGO,EXP,FLOOR,SPACE,BOOLEAN,BREAK,CALLOUT,CLASS,CONTINUE,ELSE,FALSE,FOR,IF,INT,RETURN,TRUE,VOID;
 terminal Integer ALPHA,PROGRAM,MAIN;
-terminal String alpha_num,NUM;
+terminal String alpha_num,NUM,HEX;
 
 
 
@@ -94,26 +94,26 @@ precedence left PARC,COMMA, NUM;
 precedence left INT,BOOLEAN,PARA;
 
 start with program;
-program::=CLASS PROGRAM LLAV main_method field_declm:a method_declm:b LLAC {:enlistar("Programa parseado completamente "+contador+""); 
+program::=CLASS PROGRAM LLAV field_declm:a method_declm:b LLAC {:enlistar("Programa parseado completamente "+contador+""); 
             contador++;
             Nodo n1= new Nodo("Program",contador);
             n1.addHijo(a);
             n1.addHijo(b);
             padre=n1;
             :}  
-        | CLASS PROGRAM LLAV main_method method_declm:a LLAC {:enlistar("Programa parseado completamente "+contador+""); 
+        | CLASS PROGRAM LLAV method_declm:a LLAC {:enlistar("Programa parseado completamente "+contador+""); 
             contador++;
             Nodo n1= new Nodo("Program",contador);
             n1.addHijo(a);
             padre=n1;
             :}
-        |CLASS PROGRAM LLAV main_method field_declm:a LLAC {:enlistar("Programa parseado completamente "+contador+""); 
+        |CLASS PROGRAM LLAV field_declm:a LLAC {:enlistar("Programa parseado completamente "+contador+""); 
             contador++;
             Nodo n1= new Nodo("Program",contador);
             n1.addHijo(a);
             padre=n1;
             :}
-        |CLASS PROGRAM LLAV main_method LLAC {:enlistar("Programa parseado completamente "+contador+""); 
+        |CLASS PROGRAM LLAV  LLAC {:enlistar("Programa parseado completamente "+contador+""); 
             contador++;
             Nodo n1= new Nodo("Program",contador);
             padre=n1;
@@ -205,6 +205,10 @@ method_decl2::=method_decl:a PARA method_decl4:b PARC {:
             n1.addHijo(b);
             a.addHijo(n1);
             RESULT=a;
+            :}
+        | method_decl:a PARA PARC {:
+            contador++;
+            RESULT=a;
             :};
 method_decl::=VOID id:a {:
             contador++;
@@ -225,6 +229,20 @@ method_decl::=VOID id:a {:
             Nodo n3 = new Nodo("id",contador);
             n2.addHijo(a);
             n3.addHijo(b);
+            n1.addHijo(n2);
+            n1.addHijo(n3);
+            RESULT=n1;
+            :}
+        | MAIN {:
+            contador++;
+            Nodo n1 = new Nodo("method_declm",contador);
+            Nodo n2= new Nodo("type",contador);    
+            Nodo n3 = new Nodo("id",contador);
+            Nodo n4 = new Nodo("main",contador);
+            contador++;
+            Nodo n5 = new Nodo("main",contador);
+            n2.addHijo(n4);
+            n3.addHijo(n5);
             n1.addHijo(n2);
             n1.addHijo(n3);
             RESULT=n1;
@@ -255,7 +273,6 @@ method_decl3::=type:a id:b {:enlistar("entra en type id method_decl3");
             RESULT=n1;
             :};
 
-main_method::= MAIN PARA PARC LLAV LLAC {: enlistar("main method "+contador+""); contador++; :};
 
 
 
@@ -610,6 +627,13 @@ literal::=NUM:a {: enlistar(""+a+ " "+contador+"");contador++;
         | char_literal:b {: enlistar("char literal "+contador+"");contador++; 
             Nodo n1 = new Nodo("literal",contador);
             n1.addHijo(b);
+            RESULT=n1;:}
+        | HEX:a {: enlistar(""+a+ " "+contador+"");contador++; 
+            Nodo n1 = new Nodo("literal",contador);
+            Nodo n2 = new Nodo("int_literal",contador);
+            Nodo n3 = new Nodo(a.toString(),contador);
+            n2.addHijo(n3);
+            n1.addHijo(n2);
             RESULT=n1;:};
 
 bool_literal::=TRUE {: enlistar("TRUE "+contador+"");contador++; 
